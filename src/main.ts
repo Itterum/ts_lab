@@ -17,6 +17,6 @@ class Options implements IOptions {
 function main(): void {
     const options: IOptions = Options.new('test');
     console.log(options);
- }
+}
 
 main();
