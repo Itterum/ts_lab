@@ -7,7 +7,7 @@ globalThis.CLICKUP_TOKEN = '';
 globalThis.TEAM_ID = '';
 
 import express from 'express';
-import './tg-bot';
+import './reposting/index';
 
 const app = express();
 app.use(express.json());
