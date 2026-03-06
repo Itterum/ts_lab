@@ -1,0 +1,21 @@
+{
+  "comment": [
+    {
+      "text": "Какие скиллы нужны тестировщикам игр?"
+    },
+    {
+      "text": "\n"
+    },
+    {
+      "type": "attachment",
+      "attachment": {
+        "name": "test",
+        "title": "test",
+        "extension": "mp4",
+        "source": 1,
+        "url": "https://api.telegram.org/file/bot8227021522:AAG-D4o9UYEbIItIohXHXGp8rg_OHK4facQ/videos/file_16.mp4",
+        "uploaded": true
+      }
+    }
+  ]
+}

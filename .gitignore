@@ -15,3 +15,5 @@ yarn-error.log*
 **/dist
 
 /src/config.json
+
+.env
