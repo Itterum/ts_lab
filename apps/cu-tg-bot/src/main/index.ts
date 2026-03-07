@@ -65,7 +65,6 @@ type ClickupCommentPayload = {
     comment: ClickupNode[];
 };
 
-// Конфигурация
 const CHANNELS = [
     {
         name: 'TEST CRM',
@@ -73,15 +72,9 @@ const CHANNELS = [
     },
 ];
 
-// Карты для хранения состояний
 const mediaGroups = new Map<string, Post>();
 const pendingPosts = new Map<string, Post>();
 
-// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
-
-/**
- * Извлекает URL из текста на основе entities
- */
 function extractUrlsFromText(text: string, entities?: TelegramBot.MessageEntity[]): string[] {
     const urls: string[] = [];
 
@@ -89,22 +82,16 @@ function extractUrlsFromText(text: string, entities?: TelegramBot.MessageEntity[
 
     entities.forEach((entity) => {
         if (entity.type === 'text_link' && entity.url) {
-            // Ссылка с альтернативным текстом
             urls.push(entity.url);
         } else if (entity.type === 'url') {
-            // Обычная ссылка в тексте
             const url = text.substring(entity.offset, entity.offset + entity.length);
             urls.push(url);
         }
     });
 
-    // Удаляем дубликаты
     return [...new Set(urls)];
 }
 
-/**
- * Определяет тип медиа по URL
- */
 function detectMediaTypeFromUrl(url: string): {
     type: MediaType | null;
     mime: string;
@@ -112,7 +99,6 @@ function detectMediaTypeFromUrl(url: string): {
 } {
     const urlLower = url.toLowerCase();
 
-    // Расширения изображений
     const imageExts: Record<string, string> = {
         jpg: 'image/jpeg',
         jpeg: 'image/jpeg',
@@ -123,25 +109,16 @@ function detectMediaTypeFromUrl(url: string): {
         svg: 'image/svg+xml',
     };
 
-    // Расширения видео
     const videoExts: Record<string, string> = {
         mp4: 'video/mp4',
-        avi: 'video/x-msvideo',
-        mov: 'video/quicktime',
-        wmv: 'video/x-ms-wmv',
-        flv: 'video/x-flv',
-        mkv: 'video/x-matroska',
-        webm: 'video/webm',
     };
 
-    // Проверяем изображения
     for (const [ext, mime] of Object.entries(imageExts)) {
         if (urlLower.includes(`.${ext}`) || urlLower.includes(`.${ext}?`)) {
             return { type: 'image', mime, ext };
         }
     }
 
-    // Проверяем видео
     for (const [ext, mime] of Object.entries(videoExts)) {
         if (urlLower.includes(`.${ext}`) || urlLower.includes(`.${ext}?`)) {
             return { type: 'video', mime, ext };
@@ -151,9 +128,6 @@ function detectMediaTypeFromUrl(url: string): {
     return { type: null, mime: '', ext: '' };
 }
 
-/**
- * Получает имя файла из URL
- */
 function getFileNameFromUrl(url: string, defaultName: string = 'file'): string {
     try {
         const urlObj = new URL(url);
@@ -164,7 +138,6 @@ function getFileNameFromUrl(url: string, defaultName: string = 'file'): string {
             return decodeURIComponent(filename);
         }
 
-        // Если нет имени в URL, генерируем из домена
         const domain = urlObj.hostname.replace('www.', '');
         return `${domain}_${Date.now()}`;
     } catch {
@@ -172,9 +145,6 @@ function getFileNameFromUrl(url: string, defaultName: string = 'file'): string {
     }
 }
 
-/**
- * Проверяет доступность URL
- */
 async function isUrlAccessible(url: string): Promise<boolean> {
     try {
         const controller = new AbortController();
@@ -192,9 +162,6 @@ async function isUrlAccessible(url: string): Promise<boolean> {
     }
 }
 
-/**
- * Получает MIME-тип из URL
- */
 async function getMimeTypeFromUrl(url: string): Promise<string> {
     try {
         const controller = new AbortController();
@@ -212,9 +179,6 @@ async function getMimeTypeFromUrl(url: string): Promise<string> {
     }
 }
 
-/**
- * Создает пост из сообщения
- */
 function buildPost(text: string, entities?: TelegramBot.MessageEntity[]): Post {
     return {
         id: randomUUID(),
@@ -224,9 +188,6 @@ function buildPost(text: string, entities?: TelegramBot.MessageEntity[]): Post {
     };
 }
 
-/**
- * Извлекает медиа из вложения Telegram
- */
 async function extractMediaFromAttachment(
     message: TelegramBot.Message,
 ): Promise<NormalizedMedia | null> {
@@ -272,9 +233,6 @@ async function extractMediaFromAttachment(
     }
 }
 
-/**
- * Обрабатывает URL из текста и преобразует их в медиа
- */
 async function processUrlsToMedia(
     urls: string[],
     existingMedia: NormalizedMedia[],
@@ -282,23 +240,19 @@ async function processUrlsToMedia(
     const newMedia: NormalizedMedia[] = [];
 
     for (const url of urls) {
-        // Проверяем, не был ли URL уже добавлен
         const exists =
             existingMedia.some((m) => m.url === url) || newMedia.some((m) => m.url === url);
         if (exists) continue;
 
-        // Проверяем доступность URL
         const isAccessible = await isUrlAccessible(url);
         if (!isAccessible) {
             console.log(`URL недоступен: ${url}`);
             continue;
         }
 
-        // Определяем тип медиа по URL
         const { type, mime, ext } = detectMediaTypeFromUrl(url);
 
         if (type) {
-            // Получаем точный MIME-тип если возможно
             let finalMime = mime;
             if (!finalMime) {
                 finalMime = await getMimeTypeFromUrl(url);
@@ -311,7 +265,6 @@ async function processUrlsToMedia(
                 mime: finalMime || mime || 'application/octet-stream',
             });
         } else {
-            // Если это не медиа, добавляем как ссылку
             newMedia.push({
                 type: 'link',
                 url,
@@ -325,14 +278,9 @@ async function processUrlsToMedia(
     return newMedia;
 }
 
-/**
- * Нормализует пост, объединяя вложения и URL из текста
- */
 async function normalizeTelegramPost(post: Post): Promise<NormalizedPost> {
-    // Начинаем с прикрепленных медиа
     const media: NormalizedMedia[] = [...post.media];
 
-    // Обрабатываем URL из текста
     if (post.urls && post.urls.length > 0) {
         const urlMedia = await processUrlsToMedia(post.urls, media);
         media.push(...urlMedia);
@@ -344,16 +292,12 @@ async function normalizeTelegramPost(post: Post): Promise<NormalizedPost> {
     };
 }
 
-/**
- * Получает информацию о файле из URL
- */
 function getFileInfo(url: string, fallback: string): { name: string; ext: string; mime: string } {
     try {
         const clean = url.split('?')[0];
         const name = clean.split('/').pop() ?? fallback;
         const ext = name.split('.').pop() || '';
 
-        // Определяем MIME-тип по расширению
         const mimeMap: Record<string, string> = {
             jpg: 'image/jpeg',
             jpeg: 'image/jpeg',
@@ -379,9 +323,6 @@ function getFileInfo(url: string, fallback: string): { name: string; ext: string
     }
 }
 
-/**
- * Создает клавиатуру для выбора канала
- */
 function buildChannelsKeyboard(postId: string) {
     return {
         inline_keyboard: CHANNELS.map((channel) => [
@@ -393,19 +334,14 @@ function buildChannelsKeyboard(postId: string) {
     };
 }
 
-/**
- * Строит комментарий для ClickUp
- */
 function buildClickupComment(post: NormalizedPost, rootId: string): ClickupCommentPayload {
     const comment: ClickupNode[] = [];
 
-    // Обработка текста
     if (post.text) {
         const lines = post.text.split('\n');
 
         lines.forEach((line, i) => {
             if (line.length) {
-                // TODO: Добавить обработку форматирования из entities
                 comment.push({ text: line });
             }
 
@@ -415,9 +351,7 @@ function buildClickupComment(post: NormalizedPost, rootId: string): ClickupComme
         });
     }
 
-    // Обработка медиа
     post.media.forEach((media, index) => {
-        // Добавляем разделитель перед медиа (кроме первого)
         if (index > 0 || (post.text && post.text.length > 0)) {
             comment.push({ text: '\n' });
         }
@@ -453,7 +387,6 @@ function buildClickupComment(post: NormalizedPost, rootId: string): ClickupComme
                 },
             });
         } else {
-            // Для документов и ссылок
             comment.push({
                 text: media.url,
                 attributes: {
@@ -475,9 +408,6 @@ function buildClickupComment(post: NormalizedPost, rootId: string): ClickupComme
     };
 }
 
-/**
- * Отправляет пост в ClickUp
- */
 async function sendPostToClickUp(channelId: string, payload: ClickupCommentPayload) {
     console.log(`${channelId}:${JSON.stringify(payload, null, 2)}`);
     try {
@@ -488,20 +418,16 @@ async function sendPostToClickUp(channelId: string, payload: ClickupCommentPaylo
     }
 }
 
-// ==================== ОБРАБОТЧИКИ СООБЩЕНИЙ ====================
-
 bot.on('message', async (message: TelegramBot.Message): Promise<void> => {
     const chatId = message.chat.id;
     console.log('Получено сообщение:', JSON.stringify(message, null, 2));
 
-    // Игнорируем сообщения не из пересланных каналов
     if (!message.forward_from_chat) return;
 
     const mediaGroupId = message.media_group_id;
     const rawText = message.text || message.caption || '';
     const entities = message.entities || message.caption_entities;
 
-    // Обработка медиа-группы (несколько фото/видео)
     if (mediaGroupId) {
         let post = mediaGroups.get(mediaGroupId);
 
@@ -510,22 +436,18 @@ bot.on('message', async (message: TelegramBot.Message): Promise<void> => {
             mediaGroups.set(mediaGroupId, post);
         }
 
-        // Извлекаем медиа из вложения
         const media = await extractMediaFromAttachment(message);
 
         if (media) {
             post.media.push(media);
         }
 
-        // Даем время на сбор всех медиа в группе
         setTimeout(async () => {
             const readyPost = mediaGroups.get(mediaGroupId);
             if (!readyPost) return;
 
-            // Нормализуем пост (объединяем вложения и URL из текста)
             const normalized = await normalizeTelegramPost(readyPost);
 
-            // Сохраняем нормализованный пост
             pendingPosts.set(readyPost.id, {
                 ...readyPost,
                 media: normalized.media,
@@ -536,22 +458,17 @@ bot.on('message', async (message: TelegramBot.Message): Promise<void> => {
             await bot.sendMessage(chatId, 'Выберите канал для отправки:', {
                 reply_markup: buildChannelsKeyboard(readyPost.id),
             });
-        }, 1000); // Увеличил таймаут для надежности
-    }
-    // Обработка одиночного сообщения
-    else {
+        }, 1000);
+    } else {
         const post = buildPost(rawText, entities);
 
-        // Извлекаем медиа из вложения
         const media = await extractMediaFromAttachment(message);
         if (media) {
             post.media.push(media);
         }
 
-        // Нормализуем пост (объединяем вложения и URL из текста)
         const normalized = await normalizeTelegramPost(post);
 
-        // Сохраняем нормализованный пост
         pendingPosts.set(post.id, {
             ...post,
             media: normalized.media,
@@ -562,8 +479,6 @@ bot.on('message', async (message: TelegramBot.Message): Promise<void> => {
         });
     }
 });
-
-// ==================== ОБРАБОТЧИК КНОПОК ====================
 
 bot.on('callback_query', async (callbackQuery) => {
     const message = callbackQuery.message;
@@ -584,19 +499,14 @@ bot.on('callback_query', async (callbackQuery) => {
 
     if (channelListId) {
         try {
-            // Нормализуем пост перед отправкой
             const normalized = await normalizeTelegramPost(post);
 
-            // Строим payload для ClickUp
             const payload = buildClickupComment(normalized, channelListId);
 
-            // Отправляем в ClickUp
             await sendPostToClickUp(channelListId, payload);
 
-            // Подтверждаем отправку
             await bot.sendMessage(chatId, '✅ Пост успешно отправлен в ClickUp');
 
-            // Удаляем пост из хранилища
             pendingPosts.delete(postId);
         } catch (error: any) {
             console.error('Ошибка при отправке в ClickUp:', error);
@@ -606,8 +516,6 @@ bot.on('callback_query', async (callbackQuery) => {
 
     await bot.answerCallbackQuery(callbackQuery.id);
 });
-
-// ==================== ОБРАБОТЧИК ОШИБОК ====================
 
 bot.on('polling_error', (error) => {
     console.error('Polling error:', error);
