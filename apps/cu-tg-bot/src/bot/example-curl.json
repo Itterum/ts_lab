@@ -17,5 +17,67 @@
         "uploaded": true
       }
     }
+  ],
+  "clickup_attributes": [
+    {
+      "text": "test",
+      "attributes": {
+        "bold": true
+      }
+    },
+    {
+      "text": "\n",
+      "attributes": {
+        "block-id": "block-zbIt3opl85"
+      }
+    },
+    {
+      "text": "test",
+      "attributes": {
+        "italic": true
+      }
+    },
+    {
+      "text": "\n",
+      "attributes": {
+        "block-id": "block-dOdLedS00w"
+      }
+    },
+    {
+      "text": "test",
+      "attributes": {
+        "underline": true
+      }
+    },
+    {
+      "text": "\n",
+      "attributes": {
+        "block-id": "block-OMwkVLml7r"
+      }
+    },
+    {
+      "text": "test",
+      "attributes": {
+        "strike": true
+      }
+    },
+    {
+      "text": "\n",
+      "attributes": {
+        "block-id": "block-fUbl6F8OoU"
+      }
+    },
+    {
+      "text": "test",
+      "attributes": {
+        "code": true
+      }
+    },
+    {
+      "text": "\n",
+      "attributes": {
+        "block-id": "block-hQKgrMn1mg"
+      }
+    }
   ]
 }

@@ -37,7 +37,6 @@ function extractMedia(message: TelegramBot.Message): TelegramMedia[] {
     const media: TelegramMedia[] = [];
 
     if (message.photo) {
-        // Telegram фото приходит как массив размеров, обычно берём самый большой
         const largestPhoto = message.photo[message.photo.length - 1];
         media.push({ type: 'photo', data: [largestPhoto] });
     }
@@ -78,9 +77,9 @@ bot.on('message', async (message: TelegramBot.Message): Promise<void> => {
         if (!post) {
             post = buildPost(message);
             mediaGroups.set(mediaGroupId, post);
-        } else {
-            post.media.push(...extractMedia(message));
         }
+
+        post.media.push(...extractMedia(message));
 
         setTimeout(async () => {
             const readyPost = mediaGroups.get(mediaGroupId);

@@ -27,12 +27,11 @@ export type TelegramFormatting = Extract<
     'bold' | 'italic' | 'underline' | 'strikethrough' | 'spoiler' | 'code' | 'pre' | 'text_link'
 >;
 
-export type ClickupAttribute = 'bold' | 'italic' | 'underline' | 'strikethrough' | 'code' | 'link';
+export type ClickupAttribute = 'bold' | 'italic' | 'underline' | 'strike' | 'code' | 'link';
 
 export type ClickupTextNode = {
     text: string;
     attributes?: ClickupAttribute[];
-    link?: string;
 };
 
 export type ClickupAttachmentNode = {
@@ -62,7 +61,7 @@ export const entityMap: Record<TelegramFormatting, ClickupAttribute> = {
     bold: 'bold',
     italic: 'italic',
     underline: 'underline',
-    strikethrough: 'strikethrough',
+    strikethrough: 'strike',
     code: 'code',
     pre: 'code',
     spoiler: 'italic',
