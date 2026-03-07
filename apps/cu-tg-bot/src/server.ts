@@ -7,9 +7,7 @@ globalThis.CLICKUP_TOKEN = '';
 globalThis.TEAM_ID = '';
 
 import express from 'express';
-import './main/index';
-import './test-first/index';
-import './test-second/index';
+import './bot/index';
 
 const app = express();
 app.use(express.json());
