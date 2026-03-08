@@ -27,11 +27,32 @@ export type TelegramFormatting = Extract<
     'bold' | 'italic' | 'underline' | 'strikethrough' | 'spoiler' | 'code' | 'pre' | 'text_link'
 >;
 
-export type ClickupAttribute = 'bold' | 'italic' | 'underline' | 'strike' | 'code' | 'link';
+export type ClickupAttribute = {
+    bold?: boolean;
+    italic?: boolean;
+    underline?: boolean;
+    strike?: boolean;
+    code?: boolean;
+    link?: string;
+    'block-id'?: string;
+};
 
 export type ClickupTextNode = {
     text: string;
-    attributes?: ClickupAttribute[];
+    attributes?: ClickupAttribute;
+};
+
+export type ClickupImageAttachmentNode = {
+    type: 'image';
+    text: string;
+    image: {
+        name: string;
+        title: string;
+        type: string;
+        extension: string;
+        url?: string;
+        uploaded: true;
+    };
 };
 
 export type ClickupAttachmentNode = {
@@ -42,28 +63,13 @@ export type ClickupAttachmentNode = {
         title: string;
         type: string;
         extension: string;
-        url: string;
+        url?: string;
         uploaded: true;
     };
 };
 
-export type ClickupNode = ClickupTextNode | ClickupAttachmentNode;
+export type ClickupNode = ClickupTextNode | ClickupAttachmentNode | ClickupImageAttachmentNode;
 
 export type ClickupCommentPayload = {
     comment: ClickupNode[];
-};
-
-export type EntityParser = (text: string, entities?: MessageEntity[]) => ClickupTextNode[];
-
-export type TelegramToClickup = (post: Post) => ClickupCommentPayload;
-
-export const entityMap: Record<TelegramFormatting, ClickupAttribute> = {
-    bold: 'bold',
-    italic: 'italic',
-    underline: 'underline',
-    strikethrough: 'strike',
-    code: 'code',
-    pre: 'code',
-    spoiler: 'italic',
-    text_link: 'link',
 };
