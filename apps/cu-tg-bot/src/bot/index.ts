@@ -1,6 +1,6 @@
-import {randomUUID} from 'crypto';
+import { randomUUID } from 'crypto';
 import dotenv from 'dotenv';
-import TelegramBot, {MessageEntity} from 'node-telegram-bot-api';
+import TelegramBot, { MessageEntity } from 'node-telegram-bot-api';
 import {
     ClickupAttachmentNode,
     ClickupAttribute,
@@ -47,13 +47,13 @@ function extractMedia(message: TelegramBot.Message): TelegramMedia[] {
 
     if (message.photo) {
         const largestPhoto = message.photo[message.photo.length - 1];
-        media.push({type: 'photo', data: [largestPhoto]});
+        media.push({ type: 'photo', data: [largestPhoto] });
     }
 
-    if (message.video) media.push({type: 'video', data: message.video});
-    if (message.audio) media.push({type: 'audio', data: message.audio});
-    if (message.voice) media.push({type: 'voice', data: message.voice});
-    if (message.document) media.push({type: 'document', data: message.document});
+    if (message.video) media.push({ type: 'video', data: message.video });
+    if (message.audio) media.push({ type: 'audio', data: message.audio });
+    if (message.voice) media.push({ type: 'voice', data: message.voice });
+    if (message.document) media.push({ type: 'document', data: message.document });
 
     return media;
 }
@@ -245,7 +245,7 @@ async function buildClickUpComment(post: Post): Promise<ClickupCommentPayload> {
         const textNodes = processTextWithEntities(post.text, post.entities || []);
         comment.push(...textNodes);
     } else {
-        comment.push({text: ''});
+        comment.push({ text: '' });
     }
 
     if (post.media && post.media.length > 0) {
@@ -347,7 +347,7 @@ async function buildClickUpComment(post: Post): Promise<ClickupCommentPayload> {
         }
     }
 
-    return {comment};
+    return { comment };
 }
 
 bot.on('message', async (message: TelegramBot.Message): Promise<void> => {
@@ -366,11 +366,13 @@ bot.on('message', async (message: TelegramBot.Message): Promise<void> => {
         } else {
             const newMedia = extractMedia(message);
 
-            const existingTypes = new Set(post.media.map(m =>
-                Array.isArray(m.data) ? m.data[0]?.file_id : m.data?.file_id
-            ));
+            const existingTypes = new Set(
+                post.media.map((m) =>
+                    Array.isArray(m.data) ? m.data[0]?.file_id : m.data?.file_id,
+                ),
+            );
 
-            const uniqueNewMedia = newMedia.filter(m => {
+            const uniqueNewMedia = newMedia.filter((m) => {
                 const fileId = Array.isArray(m.data) ? m.data[0]?.file_id : m.data?.file_id;
                 return !existingTypes.has(fileId);
             });
@@ -382,7 +384,7 @@ bot.on('message', async (message: TelegramBot.Message): Promise<void> => {
             const readyPost = mediaGroups.get(mediaGroupId);
             if (!readyPost) return;
 
-            pendingPosts.set(readyPost.id, {...readyPost});
+            pendingPosts.set(readyPost.id, { ...readyPost });
             mediaGroups.delete(mediaGroupId);
 
             console.log('TG POST\n', JSON.stringify(readyPost, null, 2));
